@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/tobias/Documents/workspace/BWTree/src/BWTree/BWTree.h
+cstddef
+-
+vector
+-
+iostream
+-
+atomic
+-
+cassert
+-
+algorithm
+-
+math.h
+-
+
+/Users/tobias/Documents/workspace/BWTree/src/main.cc
+BWTree/BWTree.h
+/Users/tobias/Documents/workspace/BWTree/src/BWTree/BWTree.h
+stdio.h
+-
+stdlib.h
+-
+thread
+-
+

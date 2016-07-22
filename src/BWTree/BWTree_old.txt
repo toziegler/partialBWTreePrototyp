@@ -1,0 +1,123 @@
+/*
+ * BWTree.h
+ *
+ *  Created on: Jun 13, 2016
+ *      Author: tobias
+ */
+
+#ifndef BWTREE_H_
+#define BWTREE_H_
+#include <stdlib.h>
+#include <bitset>
+#include <iostream>
+#include <atomic>
+#include "Config.h"
+#include "AbstractPage.h"
+#include "LeafPage.h"
+
+struct PIDDecoded{
+	PageType type;
+	size_t size;
+	size_t offset;
+};
+
+template <typename KEY, typename VALUE>
+class BWTree {
+public:
+	BWTree(): m_depth(0){
+		cout <<"Const: init Memory" << endl;
+		initMemory();
+		cout <<"Const new LeafeNode " << endl;
+		m_root = newLeafeNode();
+	};
+
+
+	void printMappingTable(){
+		for(size_t i = 0; i < BWMappingTableSize; i++){
+			cout <<"Index: " << i << "  PID:"<< m_mappingTable[i] << endl;
+		}
+	}
+
+private:
+
+	void initMemory(){
+		m_buffer = (char*) malloc(BWTreeSize);
+		cout << "Buffer " << &m_buffer << endl;
+		m_buffer[999] = 'a';
+		cout << "Buffer " << &m_buffer[999] << endl;
+	}
+
+	size_t newFreeBlock(){
+		// TODO Atomic update return old value
+		return m_nextFreeBlock.fetch_add(BWBlockSize, std::memory_order_relaxed);
+	}
+
+	uint64_t newLeafeNode(){
+		uint64_t expected = 0;
+		size_t offset = newFreeBlock();
+		cout <<"New Block Offset " << offset << endl;
+		cout <<"Memory Reserved for new node" << endl;
+		size_t size = sizeof(LeafPage<KEY,VALUE>);
+				cout <<"Size of Root/ Leaf " << size << endl;
+		LeafPage<KEY,VALUE>* ptr =  new(m_buffer + offset) LeafPage<KEY,VALUE>();
+		//ToDO Mapping Table
+		uint64_t newpid = createPID(LeafNode,size,0,offset);
+		cout <<"New PID " <<  newpid << endl;
+		size_t mappingTblIndex = nextFreePID();
+		cout <<"Mapping Table index " << mappingTblIndex << endl;
+		atomic_compare_exchange_strong_explicit(&m_mappingTable[mappingTblIndex], &expected, newpid, std::memory_order_release,
+                std::memory_order_relaxed);
+
+		return newpid;
+	}
+
+
+	size_t nextFreePID(){
+			return m_nextFreePid.fetch_add(1, std::memory_order_relaxed);
+		}
+
+
+	uint64_t createPID(PageType pt, size_t size, size_t oldSize , size_t offset){
+
+			uint64_t pid;
+			uint64_t mask = 0;
+
+			size = size + oldSize;
+			mask = mask | pt;
+			mask = mask << BWPIDSizeBits;
+			mask = mask | size;
+			mask = mask << (sizeof(uint64_t) * 8 - BWPIDSizeBits - BWPIDTypeBits);
+			mask = mask | offset;
+
+			pid = mask;
+			std::bitset<64> x(mask);
+			std::cout << x;
+			return pid;
+		}
+
+	void decodePID(uint64_t pid, PIDDecoded &piddecode){
+		uint64_t mask = ;
+
+	}
+
+
+
+
+	int m_root;
+	int m_depth;
+
+
+	std::atomic<uint64_t> m_mappingTable[BWMappingTableSize] = {};
+	//indexCounter
+	std::atomic<size_t> m_nextFreePid {0};
+
+	// Buffer Management
+	char* m_buffer = nullptr;
+
+	//ToDo Atomic Operation
+	std::atomic<size_t> m_nextFreeBlock {0};
+
+};
+
+
+#endif /* BWTREE_H_ */

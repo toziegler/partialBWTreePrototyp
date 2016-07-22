@@ -1,0 +1,3 @@
+/Users/tobias/Documents/workspace/BWTree/build/CMakeFiles/edit_cache.dir
+/Users/tobias/Documents/workspace/BWTree/build/CMakeFiles/rebuild_cache.dir
+/Users/tobias/Documents/workspace/BWTree/build/CMakeFiles/Main.dir
